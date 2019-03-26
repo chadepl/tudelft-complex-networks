@@ -28,7 +28,7 @@ def read_graph_from_file(path):
 
 # Aggregates all the edges. If there are duplicate edges 
 # (multiple interactions in time) it collapses them. 
-def generate_aggregated_graph(nodes, edges_per_t, repeated_edges_behavior):
+def generate_aggregated_graph(nodes, edges_per_t, repeated_edges_behavior=[]):
     G = nx.DiGraph()
     temp_edges = []
     for k, v in edges_per_t.items():
