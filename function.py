@@ -58,6 +58,77 @@ def generate_weighted_aggregated_graph(nodes, edges_per_t):
     return G
 
 
+# Calculates the aggregated "popularity" (number of interactions until time t) of each node
+# both for inlinks and outlinks for the given granularity
+def get_popularity_per_time(edges_per_t):
+    in_node_popularity = {}
+    out_node_popularity = {}
+    in_last_checked = {}
+    out_last_checked = {}
+
+    sorted_edges = dict(sorted(edges_per_t.items(), key=lambda s: s[0]))
+
+    for k, v in sorted_edges.items():
+
+        for e in v:
+            if e[0] not in out_node_popularity.keys():
+                out_node_popularity[e[0]] = {k: 1}
+            else:
+                if k not in out_node_popularity[e[0]].keys():
+                    out_node_popularity[e[0]][k] = out_node_popularity[e[0]][out_last_checked[e[0]]] + 1
+                else:
+                    out_node_popularity[e[0]][k] += 1
+            out_last_checked[e[0]] = k
+            if e[1] not in in_node_popularity.keys():
+                in_node_popularity[e[1]] = {k: 1}
+            else:
+                if k not in in_node_popularity[e[1]].keys():
+                    in_node_popularity[e[1]][k] = in_node_popularity[e[1]][in_last_checked[e[1]]] + 1
+                else:
+                    in_node_popularity[e[1]][k] += 1
+            in_last_checked[e[1]] = k
+    return in_node_popularity, out_node_popularity
+
+
+# Makes the popularity (not bar in the current version) chart given the nodes specified in the nodes list
+# and a list of dictionaries for each node with the timestep as key and the number of interactions as value
+def make_popularity_bar_chart(users, nodes):
+    y_pos = np.arange(len(users[0].keys()))
+    for ind, user in enumerate(users):
+        popularity = list(user.values())
+        plt.plot(y_pos, popularity, label='user '+nodes[ind])
+    plt.xticks(y_pos[0:len(users[0].keys()):200], list(users[0].keys())[0:len(users[0].keys()):200])
+    plt.xticks(rotation=45)
+    plt.xlabel('Day')
+    plt.ylabel('Aggregated Number of interactions')
+    plt.title('Popularity of top 5 users')
+    plt.grid(True)
+    plt.legend()
+
+    plt.show()
+
+
+# Finds the popularity distribution of the top 5 most popular nodes
+# The _popularity arguments are the output of get_popularity_per_time function
+# The _sorted arguments are a list of node - num of interactions pairs sorted in descending order
+def check_popularity_patterns(in_node_popularity, out_node_popularity, in_degree_sorted, out_degree_sorted, time):
+    top5_in_nodes = list(map(lambda x: x[0], in_degree_sorted[0:5]))
+    top5_out_nodes = list(map(lambda x: x[0], out_degree_sorted[0:5]))
+    top5_in = []
+    top5_out = []
+    for n in top5_in_nodes:
+        for ind, t in enumerate(time):
+            if t not in in_node_popularity[n].keys():
+                in_node_popularity[n][t] = 0 if ind == 0 else in_node_popularity[n][time[ind-1]]
+        top5_in.append((n, in_node_popularity[n]))
+    for n in top5_out_nodes:
+        for ind, t in enumerate(time):
+            if t not in out_node_popularity[n].keys():
+                out_node_popularity[n][t] = 0 if ind == 0 else out_node_popularity[n][time[ind-1]]
+        top5_out.append((n, out_node_popularity[n]))
+    return top5_in, top5_out
+
+
 # Computes the degree of each node in the graph
 # First column is the id and second is the degree
 def get_graph_degrees(G):
