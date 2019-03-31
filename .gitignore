@@ -83,6 +83,7 @@ modules.xml
 .idea/misc.xml
 *.ipr
 __pycache__/
+.ipynb_checkpoints/
 
 # Sonarlint plugin
 .idea/sonarlint
