@@ -30,8 +30,8 @@ def read_graph_from_file(path):
 
 # Aggregates all the edges. If there are duplicate edges 
 # (multiple interactions in time) it collapses them. 
-def generate_aggregated_graph(nodes, edges_per_t, repeated_edges_behavior=[]):
-    G = nx.DiGraph()
+def generate_aggregated_graph(nodes, edges_per_t, repeated_edges_behavior=[], directed=False):
+    G = nx.DiGraph() if directed else nx.Graph()
     temp_edges = []
     for k, v in edges_per_t.items():
         temp_edges = temp_edges + v
@@ -46,8 +46,8 @@ def generate_aggregated_graph(nodes, edges_per_t, repeated_edges_behavior=[]):
 
 # Computes the directed aggregated graph with a weight equal to the number
 # of interactions that each node has
-def generate_weighted_aggregated_graph(nodes, edges_per_t):
-    G = nx.DiGraph()
+def generate_weighted_aggregated_graph(nodes, edges_per_t, directed=True):
+    G = nx.DiGraph() if directed else nx.Graph()
     temp_edges = []
     for v in edges_per_t.values():
         temp_edges += v
@@ -132,9 +132,33 @@ def check_popularity_patterns(in_node_popularity, out_node_popularity, in_degree
 # Computes the degree of each node in the graph
 # First column is the id and second is the degree
 def get_graph_degrees(G):
-    G_degrees = np.zeros((len(G.degree()), 2))
+    G_degrees = np.zeros((len(G.degree(weight='weight')), 2))
     position = 0
-    for i, v in G.degree():
+    for i, v in G.degree(weight='weight'):
+        G_degrees[position, 0] = i
+        G_degrees[position, 1] = v
+        position += 1
+    return G_degrees
+
+
+# Computes the in-degree of each node in the graph
+# First column is the id and second is the degree
+def get_graph_in_degrees(G):
+    G_degrees = np.zeros((len(G.in_degree(weight='weight')), 2))
+    position = 0
+    for i, v in G.in_degree(weight='weight'):
+        G_degrees[position, 0] = i
+        G_degrees[position, 1] = v
+        position += 1
+    return G_degrees
+
+
+# Computes the out-degree of each node in the graph
+# First column is the id and second is the degree
+def get_graph_out_degrees(G):
+    G_degrees = np.zeros((len(G.out_degree(weight='weight')), 2))
+    position = 0
+    for i, v in G.out_degree(weight='weight'):
         G_degrees[position, 0] = i
         G_degrees[position, 1] = v
         position += 1
